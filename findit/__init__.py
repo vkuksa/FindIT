@@ -1,11 +1,10 @@
 import os
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, event
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_mail import Mail
 from findit.config import Config
-from findit.models import Skill
 
 skill_titles = ["C/C++", "C++", "C", "Python", "JavaScript", "Java", "Jopa"]
 
@@ -38,13 +37,16 @@ def init_app(config_class=Config):
     db_file = os.path.join(os.path.dirname(__file__), 'findit', 'storage.db')
     if not os.path.exists(db_file):
         with app.app_context():
-            try:
-                db.create_all()
-                for title in skill_titles:
-                    db.session.add(Skill(title))
-            except:
-                os.remove(db_file)
-                print("Exception was thrown during database initialization. Interruption of app execution.")
-                return None
+            db.create_all()
 
     return app
+
+
+from findit.models import Skill
+
+
+@event.listens_for(Skill.__table__, 'after_create')
+def insert_initial_values(*args, **kwargs):
+    for title in skill_titles:
+        db.session.add(Skill(title=title))
+    db.session.commit()
