@@ -6,7 +6,9 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from findit.config import Config
 
-skill_titles = ["C/C++", "C++", "C", "Python", "JavaScript", "Java", "Jopa"]
+employment_types = ["Робота в офісі на повний день", "Віддалена робота (повний день)", "Фріланс (разові проекти)", "Переїзд в інше місто України", "Relocate до США чи Європи"]
+technology_titles = ["C/C++", "C++", "C", "Python", "JavaScript", "Java", "Jopa"]
+city_names = ["Lviv", "Kyiv", "Berlin"]
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -42,11 +44,25 @@ def init_app(config_class=Config):
     return app
 
 
-from findit.models import Skill
+from findit.models import Technology, City, EmploymentType
 
 
-@event.listens_for(Skill.__table__, 'after_create')
+@event.listens_for(Technology.__table__, 'after_create')
 def insert_initial_values(*args, **kwargs):
-    for title in skill_titles:
-        db.session.add(Skill(title=title))
+    for title in technology_titles:
+        db.session.add(Technology(title=title))
+    db.session.commit()
+
+
+@event.listens_for(City.__table__, 'after_create')
+def insert_initial_values(*args, **kwargs):
+    for name in city_names:
+        db.session.add(City(name=name))
+    db.session.commit()
+
+
+@event.listens_for(EmploymentType.__table__, 'after_create')
+def insert_initial_values(*args, **kwargs):
+    for type in employment_types:
+        db.session.add(EmploymentType(type=type))
     db.session.commit()
